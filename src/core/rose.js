@@ -3,7 +3,7 @@
  * The central brain of the AI assistant
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import { chat } from './inference.js';
 import { loadSoul } from './soul.js';
 import { routeMessage, delegateToExecutive, recordDelegation, frameExecutiveResponse } from '../org/index.js';
 
@@ -12,7 +12,6 @@ export class RoseCore {
     this.memory = memory;
     this.voice = voice;
     this.model = model;
-    this.client = new Anthropic();
     this.soul = loadSoul();
     this.activityLog = [];
     this.delegationEnabled = process.env.DELEGATION_ENABLED !== 'false';
@@ -86,15 +85,8 @@ export class RoseCore {
         }
       ];
 
-      // Call Claude
-      const response = await this.client.messages.create({
-        model: this.model,
-        max_tokens: 4096,
-        system: systemPrompt,
-        messages
-      });
-
-      const assistantMessage = response.content[0].text;
+      // Call Claude via OpenClaw
+      const assistantMessage = await chat(systemPrompt, messages, { model: this.model });
 
       // Store in memory
       await this.memory.storeMessage(channel.conversationId, 'user', message.content);

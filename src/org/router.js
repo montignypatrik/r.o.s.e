@@ -3,7 +3,7 @@
  * Classifies messages and routes to appropriate executives
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import { infer } from '../core/inference.js';
 import { getExecutiveByKeyword, getAllExecutives } from './hierarchy.js';
 
 // Patterns that indicate Rose should handle directly (no delegation)
@@ -63,7 +63,6 @@ export function keywordRoute(message) {
  * Used as fallback when keyword routing is uncertain
  */
 export async function llmRoute(message) {
-  const client = new Anthropic();
   const executives = getAllExecutives();
 
   const executiveList = executives.map(e =>
@@ -87,14 +86,8 @@ Respond with ONLY a JSON object (no markdown, no explanation):
 Use "none" if the request is a greeting, simple question, or doesn't match any executive domain.`;
 
   try {
-    const response = await client.messages.create({
-      model: process.env.ROUTING_MODEL || 'claude-3-haiku-20240307',
-      max_tokens: 150,
-      messages: [{ role: 'user', content: prompt }]
-    });
-
-    const text = response.content[0].text.trim();
-    const result = JSON.parse(text);
+    const text = await infer(prompt, { model: 'haiku' });
+    const result = JSON.parse(text.trim());
 
     if (result.executive === 'none' || !result.executive) {
       return {
