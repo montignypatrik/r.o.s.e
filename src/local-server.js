@@ -147,7 +147,7 @@ async function askClaude(message, conversationId) {
 
   try {
     const { stdout, stderr } = await execAsync(
-      `openclaw infer model run --prompt '${escapedPrompt}' --model anthropic/claude-sonnet-4-6`,
+      `openclaw infer model run --prompt '${escapedPrompt}' --model claude-cli/claude-sonnet-4-6`,
       {
         timeout: 60000,
         env: { ...process.env, HOME: '/home/ubuntu' }
