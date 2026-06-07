@@ -1,0 +1,14 @@
+{
+  "name": "rose-dashboard",
+  "version": "0.1.0",
+  "description": "R.O.S.E Web Dashboard",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "node build.js",
+    "preview": "node server.js --production"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.0"
+  }
+}

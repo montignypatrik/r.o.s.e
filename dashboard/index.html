@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="R.O.S.E - Reasoning • Orchestration • Support • Engine - AI Executive Assistant">
+  <meta name="theme-color" content="#0a0e14">
+  <title>R.O.S.E - AI Executive Assistant</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="src/styles/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-icon">🌹</span>
+          <span class="logo-text">R.O.S.E</span>
+        </div>
+        <span class="logo-subtitle">Reasoning • Orchestration • Support • Engine</span>
+      </div>
+      <div class="header-right">
+        <div class="status-indicator" id="status">
+          <span class="status-dot"></span>
+          <span class="status-text">Connecting...</span>
+        </div>
+        <button class="btn btn-icon" id="settingsBtn" title="Settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Chat Panel -->
+      <section class="panel chat-panel">
+        <div class="panel-header">
+          <h2>Conversation</h2>
+          <button class="btn btn-sm" id="clearChat">Clear</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <!-- Messages will be inserted here -->
+        </div>
+        <div class="chat-input-container">
+          <div class="voice-controls">
+            <button class="btn btn-voice" id="voiceBtn" title="Voice Input">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+            </button>
+            <button class="btn btn-voice" id="speakerBtn" title="Toggle Voice Output">
+              <svg id="speakerIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              </svg>
+            </button>
+          </div>
+          <input type="text" class="chat-input" id="chatInput" placeholder="Message Rose..." autocomplete="off">
+          <button class="btn btn-primary" id="sendBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- Side Panel -->
+      <aside class="side-panel">
+        <!-- Activity Monitor -->
+        <section class="panel activity-panel">
+          <div class="panel-header">
+            <h2>Activity</h2>
+            <span class="badge" id="activityCount">0</span>
+          </div>
+          <div class="activity-list" id="activityList">
+            <!-- Activity items will be inserted here -->
+          </div>
+        </section>
+
+        <!-- System Status -->
+        <section class="panel status-panel">
+          <div class="panel-header">
+            <h2>System Status</h2>
+          </div>
+          <div class="status-grid">
+            <div class="status-item">
+              <span class="status-label">Uptime</span>
+              <span class="status-value" id="uptime">--</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Messages</span>
+              <span class="status-value" id="messageCount">0</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Discord</span>
+              <span class="status-value" id="discordStatus">--</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Voice</span>
+              <span class="status-value" id="voiceStatus">Ready</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="panel actions-panel">
+          <div class="panel-header">
+            <h2>Quick Actions</h2>
+          </div>
+          <div class="actions-grid">
+            <button class="action-btn" data-action="status">
+              <span class="action-icon">📊</span>
+              <span>Status Report</span>
+            </button>
+            <button class="action-btn" data-action="tasks">
+              <span class="action-icon">📋</span>
+              <span>My Tasks</span>
+            </button>
+            <button class="action-btn" data-action="calendar">
+              <span class="action-icon">📅</span>
+              <span>Schedule</span>
+            </button>
+            <button class="action-btn" data-action="remind">
+              <span class="action-icon">⏰</span>
+              <span>Remind Me</span>
+            </button>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <!-- Voice Indicator Overlay -->
+    <div class="voice-overlay" id="voiceOverlay">
+      <div class="voice-indicator">
+        <div class="voice-waves">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <p>Listening...</p>
+        <button class="btn btn-danger" id="stopVoice">Stop</button>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Settings</h2>
+          <button class="btn btn-icon modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="setting-group">
+            <label>Voice Output</label>
+            <select id="voiceOutput">
+              <option value="enabled">Enabled</option>
+              <option value="disabled">Disabled</option>
+            </select>
+          </div>
+          <div class="setting-group">
+            <label>Theme</label>
+            <select id="theme">
+              <option value="dark">Dark (Jarvis)</option>
+              <option value="light">Light</option>
+              <option value="rose">Rose</option>
+            </select>
+          </div>
+          <div class="setting-group">
+            <label>Notification Sound</label>
+            <select id="notifSound">
+              <option value="enabled">Enabled</option>
+              <option value="disabled">Disabled</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="src/app.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "name": "rose-ai-assistant",
+  "version": "0.1.0",
+  "description": "R.O.S.E - Reasoning • Orchestration • Support • Engine - AI Executive Assistant",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "dev:local": "node src/local-server.js",
+    "start": "node src/index.js",
+    "build": "cd dashboard && npm run build",
+    "dashboard": "cd dashboard && npm run dev",
+    "setup": "node scripts/setup.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0",
+    "@discordjs/voice": "^0.18.0",
+    "discord.js": "^14.16.0",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0",
+    "pg": "^8.13.0",
+    "socket.io": "^4.8.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "ai-assistant",
+    "discord-bot",
+    "voice-ai",
+    "executive-assistant"
+  ],
+  "author": "",
+  "license": "MIT"
+}
