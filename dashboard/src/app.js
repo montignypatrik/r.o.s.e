@@ -159,6 +159,16 @@ class RoseDashboard {
       this.updateActivity(data);
     });
 
+    // Handle delegation events
+    this.socket.on('delegation', (data) => {
+      this.showDelegationNotice(data);
+    });
+
+    // Handle org-wide activity
+    this.socket.on('org-activity', (data) => {
+      this.updateOrgActivity(data);
+    });
+
     // Voice output - play audio when received
     this.socket.on('audio', (data) => {
       if (data.url && this.voiceOutputSelect.value === 'enabled') {
@@ -404,9 +414,76 @@ class RoseDashboard {
       'voice_input': '🎤',
       'error': '⚠️',
       'task_created': '📋',
-      'reminder_set': '⏰'
+      'reminder_set': '⏰',
+      'delegation_started': '🔄',
+      'delegation_complete': '✅'
     };
     return icons[action] || '📌';
+  }
+
+  // Delegation handling
+  showDelegationNotice(data) {
+    const executiveIcons = {
+      cto: '💻',
+      cfo: '💰',
+      cmo: '📢',
+      coo: '⚙️',
+      cko: '📚',
+      cpo: '📦',
+      cso: '🔒'
+    };
+
+    const icon = executiveIcons[data.executive] || '👔';
+    const confidence = Math.round(data.confidence * 100);
+
+    // Add delegation badge to chat area temporarily
+    const notice = document.createElement('div');
+    notice.className = 'delegation-notice';
+    notice.innerHTML = `
+      <span class="delegation-icon">${icon}</span>
+      <span class="delegation-text">Consulting ${data.executiveName} (${confidence}% match)</span>
+    `;
+
+    // Insert before typing indicator if present, or at end of chat
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+      this.chatMessages.insertBefore(notice, typingIndicator);
+    } else {
+      this.chatMessages.appendChild(notice);
+    }
+
+    this.scrollToBottom();
+
+    // Remove after response arrives
+    setTimeout(() => notice.remove(), 10000);
+  }
+
+  updateOrgActivity(data) {
+    if (data.type === 'delegation') {
+      // Update activity panel with delegation
+      const activityItem = {
+        action: 'delegation_complete',
+        channel: 'org',
+        timestamp: data.timestamp,
+        details: {
+          executive: data.executive,
+          executiveName: data.executiveName,
+          confidence: data.confidence
+        }
+      };
+
+      // Prepend to activity list
+      const activities = [activityItem, ...this.parseCurrentActivities()].slice(0, 20);
+      this.updateActivity(activities);
+    }
+  }
+
+  parseCurrentActivities() {
+    const items = this.activityList.querySelectorAll('.activity-item');
+    return Array.from(items).map(item => ({
+      action: item.querySelector('.activity-action')?.textContent || '',
+      timestamp: new Date().toISOString()
+    }));
   }
 
   formatActivityAction(activity) {
@@ -414,7 +491,9 @@ class RoseDashboard {
       'message_received': `Message from ${activity.channel}`,
       'response_sent': `Response sent (${activity.details?.duration || 0}ms)`,
       'voice_input': 'Voice input processed',
-      'error': `Error: ${activity.details?.error || 'Unknown'}`
+      'error': `Error: ${activity.details?.error || 'Unknown'}`,
+      'delegation_started': `Routing to ${activity.details?.executive?.toUpperCase() || 'executive'}`,
+      'delegation_complete': `${activity.details?.executiveName || 'Executive'} responded (${Math.round((activity.details?.confidence || 0) * 100)}%)`
     };
     return actions[activity.action] || activity.action;
   }

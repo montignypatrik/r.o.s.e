@@ -67,6 +67,14 @@ export async function initializeWebDashboard(rose, claw) {
     res.json(roseCore.getRecentActivity(limit));
   });
 
+  app.get('/api/delegations', (req, res) => {
+    const limit = parseInt(req.query.limit) || 10;
+    res.json({
+      recent: roseCore.getRecentDelegations(limit),
+      stats: roseCore.getDelegationStats()
+    });
+  });
+
   // WebSocket handling
   io.on('connection', (socket) => {
     console.log('[WEB] Client connected:', socket.id);
@@ -90,9 +98,29 @@ export async function initializeWebDashboard(rose, claw) {
           }
         );
 
+        // Emit delegation event if a delegation occurred
+        if (response.delegation) {
+          socket.emit('delegation', {
+            executive: response.delegation.executive,
+            executiveName: response.delegation.executiveName,
+            confidence: response.delegation.confidence,
+            timestamp: new Date().toISOString()
+          });
+
+          // Broadcast org activity to all clients
+          io.emit('org-activity', {
+            type: 'delegation',
+            executive: response.delegation.executive,
+            executiveName: response.delegation.executiveName,
+            confidence: response.delegation.confidence,
+            timestamp: new Date().toISOString()
+          });
+        }
+
         socket.emit('response', {
           content: response.content,
           voice: response.voice ? response.voice.toString('base64') : null,
+          delegation: response.delegation || null,
           timestamp: new Date().toISOString()
         });
 

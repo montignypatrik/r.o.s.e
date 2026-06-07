@@ -10,6 +10,7 @@ import { initializeWebDashboard } from './channels/web/index.js';
 import { initializeVoice } from './voice/index.js';
 import { initializeMemory } from './memory/index.js';
 import { RoseCore } from './core/rose.js';
+import { initializeOrg } from './org/index.js';
 
 async function main() {
   console.log(`
@@ -32,6 +33,9 @@ async function main() {
     // Voice system (STT + TTS)
     const voice = await initializeVoice();
     console.log('[ROSE] ✓ Voice system online');
+
+    // Initialize organizational hierarchy
+    await initializeOrg();
 
     // Initialize Rose's core intelligence
     const rose = new RoseCore({

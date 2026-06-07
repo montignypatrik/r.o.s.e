@@ -427,6 +427,53 @@ body {
   30% { transform: translateY(-4px); opacity: 1; }
 }
 
+/* Delegation Notice */
+.delegation-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  margin: var(--space-sm) 60px;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 150, 200, 0.05));
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: var(--radius-md);
+  animation: delegation-fade-in 0.3s ease;
+}
+
+.delegation-icon {
+  font-size: 18px;
+}
+
+.delegation-text {
+  font-size: 12px;
+  color: var(--accent-primary);
+  font-style: italic;
+}
+
+@keyframes delegation-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Delegation badge on messages */
+.message .delegation-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  margin-top: var(--space-xs);
+  font-size: 10px;
+  color: var(--accent-primary);
+  background: rgba(0, 212, 255, 0.1);
+  border-radius: 10px;
+}
+
 /* Chat Input */
 .chat-input-container {
   display: flex;
