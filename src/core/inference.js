@@ -1,80 +1,149 @@
 /**
  * R.O.S.E Inference Engine
- * Uses OpenClaw CLI for Claude API calls
+ * Uses OpenClaw Gateway via WebSocket for Claude API calls
  */
 
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import WebSocket from 'ws';
 
-const execAsync = promisify(exec);
+// OpenClaw Gateway configuration
+const OPENCLAW_HOST = process.env.OPENCLAW_HOST || '172.17.0.1';
+const OPENCLAW_PORT = process.env.OPENCLAW_PORT || 8080;
+const OPENCLAW_TOKEN = process.env.OPENCLAW_GATEWAY_TOKEN || '';
+const OPENCLAW_URL = `ws://${OPENCLAW_HOST}:${OPENCLAW_PORT}`;
 
-// Model mapping for openclaw CLI
-const MODEL_MAP = {
-  'opus': 'anthropic/claude-sonnet-4-6',
-  'sonnet': 'anthropic/claude-sonnet-4-6',
-  'haiku': 'anthropic/claude-3-haiku',
-  'claude-sonnet-4-20250514': 'anthropic/claude-sonnet-4-6',
-  'claude-3-haiku-20240307': 'anthropic/claude-3-haiku'
-};
+let openclawWs = null;
+let openclawConnected = false;
+const pendingRequests = new Map();
 
 /**
- * Call Claude via OpenClaw CLI
- * @param {string} prompt - The full prompt (system + user combined)
+ * Connect to OpenClaw Gateway
+ */
+function connectToOpenClaw() {
+  return new Promise((resolve) => {
+    if (openclawConnected && openclawWs) {
+      resolve(true);
+      return;
+    }
+
+    const wsUrl = OPENCLAW_TOKEN
+      ? `${OPENCLAW_URL}?auth.token=${OPENCLAW_TOKEN}`
+      : OPENCLAW_URL;
+
+    console.log('[INFERENCE] Connecting to OpenClaw gateway...');
+    openclawWs = new WebSocket(wsUrl);
+
+    openclawWs.on('open', () => {
+      openclawConnected = true;
+      console.log('[INFERENCE] ✓ Connected to OpenClaw gateway');
+      resolve(true);
+    });
+
+    openclawWs.on('message', (data) => {
+      try {
+        const msg = JSON.parse(data.toString());
+        if (msg.id && pendingRequests.has(msg.id)) {
+          const { resolve, reject } = pendingRequests.get(msg.id);
+          pendingRequests.delete(msg.id);
+
+          if (msg.error) {
+            reject(new Error(msg.error.message || 'OpenClaw error'));
+          } else {
+            resolve(msg.result);
+          }
+        }
+      } catch (e) {
+        console.error('[INFERENCE] Failed to parse message:', e);
+      }
+    });
+
+    openclawWs.on('close', () => {
+      openclawConnected = false;
+      console.log('[INFERENCE] OpenClaw connection closed, reconnecting in 5s...');
+      setTimeout(connectToOpenClaw, 5000);
+    });
+
+    openclawWs.on('error', (err) => {
+      console.error('[INFERENCE] OpenClaw WebSocket error:', err.message);
+      resolve(false);
+    });
+  });
+}
+
+/**
+ * Send request to OpenClaw gateway
+ */
+async function sendToOpenClaw(method, params) {
+  if (!openclawConnected || !openclawWs) {
+    await connectToOpenClaw();
+    if (!openclawConnected) {
+      throw new Error('OpenClaw not connected');
+    }
+  }
+
+  const id = Date.now().toString() + Math.random().toString(36).slice(2);
+
+  return new Promise((resolve, reject) => {
+    pendingRequests.set(id, { resolve, reject });
+
+    const message = {
+      jsonrpc: '2.0',
+      id,
+      method,
+      params
+    };
+
+    openclawWs.send(JSON.stringify(message));
+
+    // Timeout after 60 seconds
+    setTimeout(() => {
+      if (pendingRequests.has(id)) {
+        pendingRequests.delete(id);
+        reject(new Error('OpenClaw request timeout'));
+      }
+    }, 60000);
+  });
+}
+
+/**
+ * Call Claude via OpenClaw Gateway
+ * @param {string} prompt - The full prompt
  * @param {object} options - Options like model, timeout
  * @returns {Promise<string>} The response text
  */
 export async function infer(prompt, options = {}) {
-  const model = MODEL_MAP[options.model] || MODEL_MAP['sonnet'];
-  const timeout = options.timeout || 60000;
+  const result = await sendToOpenClaw('agent.chat', {
+    message: prompt,
+    system: ''
+  });
 
-  // Escape prompt for shell - handle single quotes
-  const escapedPrompt = prompt.replace(/'/g, "'\\''");
-
-  try {
-    const { stdout } = await execAsync(
-      `openclaw infer model run --prompt '${escapedPrompt}' --model ${model}`,
-      {
-        timeout,
-        env: { ...process.env, HOME: process.env.HOME || '/home/ubuntu' },
-        maxBuffer: 1024 * 1024 * 10 // 10MB buffer
-      }
-    );
-
-    // Parse response - remove openclaw header lines
-    const lines = stdout.trim().split('\n');
-    const responseLines = lines.filter(line =>
-      !line.startsWith('model.run') &&
-      !line.startsWith('provider:') &&
-      !line.startsWith('model:') &&
-      !line.startsWith('outputs:')
-    );
-
-    return responseLines.join('\n').trim();
-
-  } catch (error) {
-    console.error('[INFERENCE] OpenClaw error:', error.message);
-    throw error;
-  }
+  return result?.content || result?.message || result || '';
 }
 
 /**
  * Call Claude with system prompt and messages
- * Formats like Anthropic SDK but uses OpenClaw CLI
  */
 export async function chat(systemPrompt, messages, options = {}) {
-  // Build the full prompt
-  let fullPrompt = systemPrompt + '\n\n';
+  // Get the last user message
+  const lastMessage = messages[messages.length - 1];
+  const userMessage = lastMessage?.content || '';
 
-  // Add conversation history
-  for (const msg of messages) {
-    const role = msg.role === 'user' ? 'User' : 'Assistant';
-    fullPrompt += `${role}: ${msg.content}\n`;
+  // Build context from previous messages
+  let context = '';
+  if (messages.length > 1) {
+    context = messages.slice(0, -1).map(m =>
+      `${m.role === 'user' ? 'User' : 'Rose'}: ${m.content}`
+    ).join('\n') + '\n\n';
   }
 
-  // Add the final prompt marker for assistant response
-  fullPrompt += 'Assistant:';
+  const result = await sendToOpenClaw('agent.chat', {
+    message: context + userMessage,
+    system: systemPrompt
+  });
 
-  return infer(fullPrompt, options);
+  return result?.content || result?.message || result || '';
 }
+
+// Initialize connection on module load
+connectToOpenClaw();
 
 export default { infer, chat };
