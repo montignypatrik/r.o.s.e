@@ -97,8 +97,7 @@ export class RoseCore {
 
       const duration = Date.now() - startTime;
       this.logActivity('response_sent', channel.type, {
-        duration,
-        tokens: response.usage?.output_tokens
+        duration
       });
 
       return {
