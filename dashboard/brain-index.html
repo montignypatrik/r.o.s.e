@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="R.O.S.E - Rose's Brain Interface">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>R.O.S.E - Brain Interface</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="src/styles/brain.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <!-- Status Bar -->
+    <header class="status-bar">
+      <div class="status-left">
+        <span class="logo-text">R.O.S.E</span>
+        <span class="status-divider">|</span>
+        <span class="status-label">NEURAL INTERFACE</span>
+      </div>
+      <div class="status-center">
+        <div class="status-indicator" id="connectionStatus">
+          <span class="status-dot"></span>
+          <span class="status-text">CONNECTING</span>
+        </div>
+      </div>
+      <div class="status-right">
+        <span class="status-time" id="systemTime">--:--:--</span>
+        <button class="btn-icon" id="settingsBtn" title="Settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Brain Visualization Container -->
+    <main class="brain-container">
+      <!-- Canvas for the brain visualization -->
+      <canvas id="brainCanvas"></canvas>
+
+      <!-- Brain info overlay -->
+      <div class="brain-info" id="brainInfo">
+        <div class="brain-title">ROSE NEURAL CORE</div>
+        <div class="brain-stats">
+          <div class="stat">
+            <span class="stat-value" id="nodeCount">0</span>
+            <span class="stat-label">NODES</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="connectionCount">0</span>
+            <span class="stat-label">LINKS</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="categoryCount">0</span>
+            <span class="stat-label">REGIONS</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Node hover tooltip -->
+      <div class="node-tooltip" id="nodeTooltip">
+        <div class="tooltip-title" id="tooltipTitle">Node Name</div>
+        <div class="tooltip-category" id="tooltipCategory">Category</div>
+        <div class="tooltip-links" id="tooltipLinks">0 connections</div>
+      </div>
+
+      <!-- Category legend -->
+      <div class="category-legend" id="categoryLegend">
+        <!-- Categories will be inserted here -->
+      </div>
+    </main>
+
+    <!-- Collapsible Chat Panel -->
+    <section class="chat-panel" id="chatPanel">
+      <!-- Collapse/Expand handle -->
+      <div class="chat-handle" id="chatHandle">
+        <div class="handle-line"></div>
+        <span class="handle-text">COMMUNICATION CHANNEL</span>
+        <div class="handle-line"></div>
+        <button class="handle-toggle" id="chatToggle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Chat content -->
+      <div class="chat-content" id="chatContent">
+        <div class="chat-messages" id="chatMessages">
+          <!-- Messages will be inserted here -->
+        </div>
+        <div class="chat-input-area">
+          <div class="input-controls">
+            <button class="btn-control" id="voiceBtn" title="Voice Input">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+              </svg>
+            </button>
+            <button class="btn-control" id="speakerBtn" title="Voice Output">
+              <svg id="speakerIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              </svg>
+            </button>
+          </div>
+          <input type="text" class="chat-input" id="chatInput" placeholder="Speak to Rose..." autocomplete="off">
+          <button class="btn-send" id="sendBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>SYSTEM CONFIGURATION</h2>
+          <button class="btn-icon modal-close" id="closeSettings">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="setting-group">
+            <label>Voice Output</label>
+            <select id="voiceOutput">
+              <option value="enabled">Enabled</option>
+              <option value="disabled">Disabled</option>
+            </select>
+          </div>
+          <div class="setting-group">
+            <label>Brain Animation</label>
+            <select id="brainAnimation">
+              <option value="full">Full Effects</option>
+              <option value="reduced">Reduced</option>
+              <option value="minimal">Minimal</option>
+            </select>
+          </div>
+          <div class="setting-group">
+            <label>Show Categories</label>
+            <select id="showCategories">
+              <option value="all">All</option>
+              <option value="active">Active Only</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="src/brain/mock-data.js"></script>
+  <script src="src/brain/brain-graph.js"></script>
+  <script src="src/brain/brain-app.js"></script>
+</body>
+</html>
